@@ -15,15 +15,28 @@ module Crypto.Cipher.Blowfish.Primitive
     , decrypt
     ) where
 
-import Data.Vector (Vector, (!), (//))
-import qualified Data.Vector as V
+--import Data.Vector (Vector, (!), (//))
+--import qualified Data.Vector as V
+import Data.List as V
 import Data.Bits
 import Data.Char
 import Data.Word
 import qualified Data.ByteString as B
 
-type Pbox = Vector Word32
-type Sbox = Vector Word32
+--type Pbox = Vector Word32
+--type Sbox = Vector Word32
+type Pbox = [Word32]
+type Sbox = [Word32]
+
+(//) :: [a] -> [(Int,a)] -> [a]
+(//) xs ys' = go xs ys 0
+  where ys = sortBy (\x y -> compare (fst x) (fst y)) ys'
+        go [] _ _ = []
+        go as [] _ = as
+        go (a:as) ((i,b):bs) j | i == j     = b : go as bs (j+1)
+                               | otherwise  = a : go as ((i,b):bs) (j+1)
+generateVec :: Int -> (Int -> a) -> [a]
+generateVec x f = map f . take x $ [0..] 
 
 -- | variable keyed blowfish state
 data Context = BF Pbox Sbox Sbox Sbox Sbox
@@ -51,7 +64,7 @@ initBlowfish b
 keyFromByteString :: B.ByteString -> Either String Context
 keyFromByteString k
     | B.length k /= (18 * 4) = fail "Incorrect expanded key length."
-    | otherwise = return . bfMakeKey . (\ws -> V.generate 18 (ws!!)) . w8tow32 . B.unpack $ k
+    | otherwise = return . bfMakeKey . (\ws -> generateVec 18 (ws!!)) . w8tow32 . B.unpack $ k
   where
     w8tow32 :: [Word8] -> [Word32]
     w8tow32 [] = []
@@ -62,7 +75,7 @@ keyFromByteString k
     w8tow32 _ = error $ "internal error: Crypto.Cipher.Blowfish:keyFromByteString"
 
 coreCrypto :: Pbox -> Context -> (Word32, Word32) -> (Word32, Word32)
-coreCrypto p bs i = (\(l,r) -> (r `xor` p!17, l `xor` p!16))
+coreCrypto p bs i = (\(l,r) -> (r `xor` p!!17, l `xor` p!!16))
                   $ V.foldl' (doRound bs) i (V.take 16 p)
   where
     doRound :: Context -> (Word32, Word32) -> Word32 -> (Word32, Word32)
@@ -72,13 +85,13 @@ coreCrypto p bs i = (\(l,r) -> (r `xor` p!17, l `xor` p!16))
         in (newl, newr)
           where
             f   :: Word32 -> Word32
-            f t = let a = s0 ! (fromIntegral $ (t `shiftR` 24) .&. 0xff)
-                      b = s1 ! (fromIntegral $ (t `shiftR` 16) .&. 0xff)
-                      c = s2 ! (fromIntegral $ (t `shiftR` 8) .&. 0xff)
-                      d = s3 ! (fromIntegral $ t .&. 0xff)
+            f t = let a = s0 !! (fromIntegral $ (t `shiftR` 24) .&. 0xff)
+                      b = s1 !! (fromIntegral $ (t `shiftR` 16) .&. 0xff)
+                      c = s2 !! (fromIntegral $ (t `shiftR` 8) .&. 0xff)
+                      d = s3 !! (fromIntegral $ t .&. 0xff)
                   in ((a + b) `xor` c) + d
 
-bfMakeKey :: Vector Word32 -> Context
+bfMakeKey :: [Word32] -> Context
 bfMakeKey k = procKey (0,0) (BF (V.zipWith xor k iPbox) iSbox0 iSbox1 iSbox2 iSbox3) 0
 
 procKey :: (Word32, Word32) -> Context -> Int -> Context
@@ -136,8 +149,8 @@ encode64be w = B.pack . map fromIntegral $
 
 -- TODO build these tables using TemplateHaskell and a digit extraction algorithm
 
-mkBox :: [Char] -> Vector Word32
-mkBox = V.fromList . map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
+mkBox :: [Char] -> [Word32]
+mkBox = id . map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
 
 iPbox :: Pbox
 iPbox = mkBox "\
