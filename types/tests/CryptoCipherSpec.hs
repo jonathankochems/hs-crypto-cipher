@@ -6,8 +6,8 @@ import Test.QuickCheck
 import Data.Char(isPrint)
 
 import Data.ByteString.Char8 hiding (all, take, length)
-import Crypto.Cipher.Types
-import Crypto.Cipher.Blowfish
+import Crypto.Cipher.Types (ecbEncrypt, ecbDecrypt, cipherInit, makeKey)
+import Crypto.Cipher.Blowfish (Blowfish)
 -- the bytestring need to have a length of 32 bytes
 -- otherwise the simplified error handling will raise an exception.
 
@@ -27,7 +27,17 @@ main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = do describe "spec" $ it "should do something" $ do
+spec = do describe "bla"  $ it "should be bla" $ do
+            let key       = pack "testfkjshfksjahdkj"
+                message1  = pack "testmessage asdkhaskjdhasjhgdakjshgdkajshdgkajhsgdkajhsg" 
+                cmessage1 = pack "\162\198\EOT6\173O\211\180B\SYNp3\134\142\196\227[0^`z%\v*\f\142G1!\219a\251\DC1\144\167/\130\"D\145\176\172h\152E\166;%\159pP\199?\225/\183"
+                message2  = pack "rumtitumatataat blweijdasdeeswig" 
+                cmessage2 = pack "\DC4=\174\ETXH[TF\157\ETXx\t\138^\197*.\194\&9\241K\164?\196\134VMo\138k\195\164"
+            cryptKey   key message1  `shouldBe` cmessage1
+            decryptKey key cmessage1 `shouldBe` message1
+            cryptKey   key message2  `shouldBe` cmessage2
+            decryptKey key cmessage2 `shouldBe` message2
+          describe "spec" $ it "should do something" $ do
             let message = "testmessage asdkhaskjdhasjhgdakjshgdkajshdgkajhsgdkajhsg"
             let e = cryptKey (pack "testfkjshfksjahdkj") $ pack message
                 d = decryptKey (pack "testfkjshfksjahdkj") e
