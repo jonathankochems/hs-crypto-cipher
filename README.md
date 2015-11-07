@@ -1,5 +1,10 @@
-crypto-cipher suite
-===================
+crypto-cipher minimal
+=====================
+
+I'm currently experimenting to get a minimal encryption feature that will run without dependencies and is not
+supposed to deliver and trusted security. Most likely you will want to use the package which I have forked from.
+DO NOT RELY ON THE FUNCTIONALITY PROVIDED HERE.
+
 
 Documentation: [crypto-cipher-types on hackage](http://hackage.haskell.org/package/crypto-cipher-types)
 
