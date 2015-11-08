@@ -1,7 +1,10 @@
-\*.o
-\*.hi
-\*.tix
-\*.mix
 dist
-types/.cabal-sandbox
+cabal-dev
+*.o
+*.hi
+*.chi
+*.chs.h
+.virthualenv
+.hsenv
+.cabal-sandbox/
 cabal.sandbox.config
