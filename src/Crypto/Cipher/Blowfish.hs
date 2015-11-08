@@ -7,7 +7,7 @@
 -- Portability : good
 --
 module Crypto.Cipher.Blowfish
-    ( Blowfish
+    ( Blowfish, ecbEncrypt, ecbDecrypt
     --, Blowfish64
     --, Blowfish128
     --, Blowfish256
@@ -38,10 +38,10 @@ instance Cipher Blowfish where
     cipherKeySize _ = KeySizeRange 6 56
     cipherInit k = either error Blowfish $ initBlowfish (toBytes k)
 
-instance BlockCipher Blowfish where
-    blockSize _ = 8
-    ecbEncrypt (Blowfish bf) = encrypt bf
-    ecbDecrypt (Blowfish bf) = decrypt bf
+--instance BlockCipher Blowfish where
+--    blockSize _ = 8
+ecbEncrypt (Blowfish bf) = encrypt bf
+ecbDecrypt (Blowfish bf) = decrypt bf
 
 -- #define INSTANCE_CIPHER(CSTR, NAME, KEYSIZE) \
 --instance Cipher CSTR where \

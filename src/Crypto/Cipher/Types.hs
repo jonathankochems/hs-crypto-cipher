@@ -12,27 +12,16 @@ module Crypto.Cipher.Types
     (
     -- * Cipher classes
       Cipher(..)
-    , BlockCipher(..)
     , StreamCipher(..)
     , DataUnitOffset
     , KeySizeSpecifier(..)
     , KeyError(..)
-    , AEAD(..)
-    , AEADState(..)
     , AEADMode(..)
-    , AEADModeImpl(..)
-    , cfb8Encrypt
-    , cfb8Decrypt
-    -- * AEAD functions
-    , module Crypto.Cipher.Types.AEAD
     -- * Key type and constructor
     , Key
     , makeKey
     -- * Initial Vector type and constructor
     , IV
-    , makeIV
-    , nullIV
-    , ivAdd
     -- * Authentification Tag
     , AuthTag(..)
     ) where
@@ -40,9 +29,7 @@ module Crypto.Cipher.Types
 import Data.SecureMem
 import Data.Byteable
 import Crypto.Cipher.Types.Base
-import Crypto.Cipher.Types.Block
 import Crypto.Cipher.Types.Stream
-import Crypto.Cipher.Types.AEAD
 
 -- | Create a Key for a specified cipher
 makeKey :: (ToSecureMem b, Cipher c) => b -> Either KeyError (Key c)
