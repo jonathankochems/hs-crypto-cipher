@@ -1,5 +1,5 @@
 module CryptoCipherSpec (main, spec) where
-
+ 
 import Test.Hspec
 import Test.QuickCheck
 
