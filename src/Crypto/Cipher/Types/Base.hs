@@ -14,7 +14,7 @@ module Crypto.Cipher.Types.Base
     , IV(..)
     , Cipher(..)
     , AuthTag(..)
-    , AEADMode(..)
+ --   , AEADMode(..)
     , DataUnitOffset
     ) where
 
@@ -63,14 +63,14 @@ instance Eq AuthTag where
 instance Byteable AuthTag where
     toBytes (AuthTag bs) = bs
 
--- | AEAD Mode
-data AEADMode =
-      AEAD_OCB -- OCB3
-    | AEAD_CCM
-    | AEAD_EAX
-    | AEAD_CWC
-    | AEAD_GCM
-    deriving (Show,Eq)
+---- | AEAD Mode
+--data AEADMode =
+--      AEAD_OCB -- OCB3
+--    | AEAD_CCM
+--    | AEAD_EAX
+--    | AEAD_CWC
+--    | AEAD_GCM
+--    deriving (Show,Eq)
 
 -- | Symmetric cipher class.
 class Cipher cipher where

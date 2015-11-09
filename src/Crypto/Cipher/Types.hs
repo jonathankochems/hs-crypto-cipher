@@ -16,7 +16,7 @@ module Crypto.Cipher.Types
     , DataUnitOffset
     , KeySizeSpecifier(..)
     , KeyError(..)
-    , AEADMode(..)
+--    , AEADMode(..)
     -- * Key type and constructor
     , Key
     , makeKey
@@ -27,15 +27,16 @@ module Crypto.Cipher.Types
     ) where
 
 import Data.SecureMem
-import Data.Byteable
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 import Crypto.Cipher.Types.Base
 import Crypto.Cipher.Types.Stream
 
 -- | Create a Key for a specified cipher
-makeKey :: (ToSecureMem b, Cipher c) => b -> Either KeyError (Key c)
+makeKey :: (Cipher c) => ByteString -> Either KeyError (Key c)
 makeKey b = toKey undefined
   where sm    = toSecureMem b
-        smLen = byteableLength sm
+        smLen = B.length b
         toKey :: Cipher c => c -> Either KeyError (Key c)
         toKey cipher = case cipherKeySize cipher of
             KeySizeRange mi ma | smLen < mi -> Left KeyErrorTooSmall
