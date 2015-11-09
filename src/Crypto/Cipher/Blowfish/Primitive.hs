@@ -149,8 +149,8 @@ encode64be w = B.pack . map fromIntegral $
 
 -- TODO build these tables using TemplateHaskell and a digit extraction algorithm
 
-mkBox :: [Char] -> [Word32]
-mkBox = id . map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
+mkBox :: String -> [Word32]
+mkBox =  map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
 
 iPbox :: Pbox
 iPbox = mkBox "\

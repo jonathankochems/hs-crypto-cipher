@@ -7,12 +7,10 @@
 --
 -- symmetric cipher basic types
 --
-{-# LANGUAGE DeriveDataTypeable #-}
 module Crypto.Cipher.Types
     (
     -- * Cipher classes
       Cipher(..)
-    , StreamCipher(..)
     , DataUnitOffset
     , KeySizeSpecifier(..)
     , KeyError(..)
@@ -30,7 +28,6 @@ import Data.SecureMem
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import Crypto.Cipher.Types.Base
-import Crypto.Cipher.Types.Stream
 
 -- | Create a Key for a specified cipher
 makeKey :: (Cipher c) => ByteString -> Either KeyError (Key c)
