@@ -14,8 +14,17 @@ module Crypto.Cipher.Blowfish
     --, Blowfish448
     ) where
 
-import Data.Byteable
+import Data.ByteString hiding (withByteArray)
+import           Data.ByteArray  (ScrubbedBytes, withByteArray)
+import qualified Data.ByteArray  as BA
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Internal as BS
+import Foreign.Ptr (plusPtr, Ptr)
+import           Data.Word (Word8)
+import Foreign.ForeignPtr (withForeignPtr)
+
 import Crypto.Cipher.Types
+import Crypto.Cipher.Types.Base
 import Crypto.Cipher.Blowfish.Primitive
 
 -- | variable keyed blowfish state
@@ -33,10 +42,21 @@ newtype Blowfish = Blowfish Context
 ---- | 448 bit keyed blowfish state
 --newtype Blowfish448 = Blowfish448 Context
 
+-- | Create a bytestring from a Secure Mem
+secureMemToByteString :: ScrubbedBytes -> ByteString
+secureMemToByteString sm =
+    BS.unsafeCreate sz $ \dst ->
+    BA.withByteArray sm $ \src ->
+    BS.memcpy dst src (fromIntegral sz)
+  where sz = BA.length sm
+        --withByteArray :: ScrubbedBytes -> (Ptr Word8 -> IO b) -> IO b
+        --withByteArray b f = withForeignPtr fptr $ \ptr -> f (ptr `plusPtr` off)
+        --   where (fptr, off, _) = BS.toForeignPtr b
+
 instance Cipher Blowfish where
     cipherName _    = "blowfish"
     cipherKeySize _ = KeySizeRange 6 56
-    cipherInit k = either error Blowfish $ initBlowfish (toBytes k)
+    cipherInit (Key k) = either error Blowfish $ initBlowfish (secureMemToByteString k)
 
 --instance BlockCipher Blowfish where
 --    blockSize _ = 8

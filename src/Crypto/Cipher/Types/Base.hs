@@ -18,10 +18,12 @@ module Crypto.Cipher.Types.Base
     , DataUnitOffset
     ) where
 
-import Data.Byteable
-import Data.SecureMem
+--import Data.Byteable
 import Data.Word
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import Data.ByteArray  (ScrubbedBytes)
+import qualified Data.ByteArray as BA
 
 -- | Possible Error that can be reported when initializating a key
 data KeyError =
@@ -41,27 +43,30 @@ data KeySizeSpecifier =
 type DataUnitOffset = Word32
 
 -- | a Key parametrized by the cipher
-newtype Key c = Key SecureMem deriving (Eq)
+newtype Key c = Key ScrubbedBytes deriving (Eq)
 
-instance ToSecureMem (Key c) where
-    toSecureMem (Key sm) = sm
-instance Byteable (Key c) where
-    toBytes (Key sm) = toBytes sm
+--instance ToSecureMem (Key c) where
+--    toSecureMem (Key sm) = sm
+--instance Byteable (Key c) where
+--    toBytes (Key sm) = toBytes sm
+
+--instance Byteable ScrubbedBytes where
+--    toBytes x = BS.pack $ BA.unpack x
 
 -- | an IV parametrized by the cipher
 newtype IV c = IV ByteString deriving (Eq)
 
-instance Byteable (IV c) where
-    toBytes (IV sm) = sm
+--instance Byteable (IV c) where
+--    toBytes (IV sm) = sm
 
 -- | Authentification Tag for AE cipher mode
 newtype AuthTag = AuthTag ByteString
-    deriving (Show)
+    deriving (Show,Eq)
 
-instance Eq AuthTag where
-    (AuthTag a) == (AuthTag b) = constEqBytes a b
-instance Byteable AuthTag where
-    toBytes (AuthTag bs) = bs
+--instance Eq AuthTag where
+--    (AuthTag a) == (AuthTag b) = constEqBytes a b
+--instance Byteable AuthTag where
+--    toBytes (AuthTag bs) = bs
 
 ---- | AEAD Mode
 --data AEADMode =
