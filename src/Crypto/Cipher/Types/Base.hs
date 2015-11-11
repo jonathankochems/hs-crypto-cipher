@@ -14,16 +14,13 @@ module Crypto.Cipher.Types.Base
     , IV(..)
     , Cipher(..)
     , AuthTag(..)
- --   , AEADMode(..)
     , DataUnitOffset
     ) where
 
---import Data.Byteable
+
 import Data.Word
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Data.ByteArray  (ScrubbedBytes)
-import qualified Data.ByteArray as BA
 
 -- | Possible Error that can be reported when initializating a key
 data KeyError =
@@ -43,7 +40,7 @@ data KeySizeSpecifier =
 type DataUnitOffset = Word32
 
 -- | a Key parametrized by the cipher
-newtype Key c = Key ScrubbedBytes deriving (Eq)
+newtype Key c = Key ByteString deriving (Eq)
 
 --instance ToSecureMem (Key c) where
 --    toSecureMem (Key sm) = sm

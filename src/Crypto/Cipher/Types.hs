@@ -26,13 +26,12 @@ module Crypto.Cipher.Types
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import qualified Data.ByteArray as BA
 import Crypto.Cipher.Types.Base
 
 -- | Create a Key for a specified cipher
 makeKey :: (Cipher c) => ByteString -> Either KeyError (Key c)
 makeKey b = toKey undefined
-  where sm    = BA.pack $ B.unpack b
+  where sm    = {-BA.pack $ B.unpack-} b
         smLen = B.length b
         toKey :: Cipher c => c -> Either KeyError (Key c)
         toKey cipher = case cipherKeySize cipher of
