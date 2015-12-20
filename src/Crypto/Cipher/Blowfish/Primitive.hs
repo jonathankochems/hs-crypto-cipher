@@ -15,16 +15,12 @@ module Crypto.Cipher.Blowfish.Primitive
     , decrypt
     ) where
 
---import Data.Vector (Vector, (!), (//))
---import qualified Data.Vector as V
 import Data.List as V
 import Data.Bits
 import Data.Char
 import Data.Word
 import qualified Data.ByteString as B
 
---type Pbox = Vector Word32
---type Sbox = Vector Word32
 type Pbox = [Word32]
 type Sbox = [Word32]
 
@@ -120,10 +116,11 @@ doChunksGen n f b =
         else [ f x ]
 
 toW32Pair :: B.ByteString -> (Word32, Word32)
-toW32Pair b = let (x1, x2) = B.splitAt 4 b
-                  w1 = decode32be x1
-                  w2 = decode32be x2
-              in (w1,w2)
+toW32Pair b' = let (x1, x2) = splitAt 4 b
+                   w1 = decode32be x1
+                   w2 = decode32be x2
+                   b  = map fromIntegral $ B.unpack b'
+              in (fromIntegral w1,fromIntegral w2)
 
 fromW32Pair :: (Word32, Word32) -> B.ByteString
 fromW32Pair (w1,w2)
@@ -132,15 +129,8 @@ fromW32Pair (w1,w2)
           w = (w1' `shiftL` 32) .|. w2'
       in encode64be w
 
-decode32be :: B.ByteString -> Word32
+decode32be :: [Int] -> Int
 decode32be s = id $!
-    (fromIntegral (s `B.index` 0) `shiftL` 24) .|.
-    (fromIntegral (s `B.index` 1) `shiftL` 16) .|.
-    (fromIntegral (s `B.index` 2) `shiftL`  8) .|.
-    (fromIntegral (s `B.index` 3) )
-
-decode32beGen :: [Int] -> Int
-decode32beGen s = id $!
     (fromIntegral (s !! 0) * 2^24) +
     (fromIntegral (s !! 1) * 2^16) +
     (fromIntegral (s !! 2) * 2^8 ) +
@@ -160,16 +150,10 @@ encode64be w = B.pack . map fromIntegral $
                 ]
 
 ---------- INITIAL S AND P BOXES ARE THE HEXADECIMAL DIGITS OF PI ------------
-
--- TODO build these tables using TemplateHaskell and a digit extraction algorithm
-
---mkBox :: String -> [Word32]
---mkBox =  map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
-
 mkBox :: String -> [Word32]
 mkBox = map fromIntegral . mkBox'
     where mkBox' :: String -> [Int]
-          mkBox' =  map decode32beGen . doChunksGen 4 id . map (fromIntegral . ord)
+          mkBox' =  map decode32be . doChunksGen 4 id . map (fromIntegral . ord)
 
 iPbox :: Pbox
 iPbox = mkBox "\
