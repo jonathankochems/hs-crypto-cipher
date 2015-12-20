@@ -113,6 +113,12 @@ doChunks n f b =
         then f x : doChunks n f rest
         else [ f x ]
 
+doChunksGen n f b =
+    let (x, rest) = splitAt n b in
+    if length rest >= n
+        then f x : doChunksGen n f rest
+        else [ f x ]
+
 toW32Pair :: B.ByteString -> (Word32, Word32)
 toW32Pair b = let (x1, x2) = B.splitAt 4 b
                   w1 = decode32be x1
@@ -133,6 +139,14 @@ decode32be s = id $!
     (fromIntegral (s `B.index` 2) `shiftL`  8) .|.
     (fromIntegral (s `B.index` 3) )
 
+decode32beGen :: [Int] -> Int
+decode32beGen s = id $!
+    (fromIntegral (s !! 0) * 2^24) +
+    (fromIntegral (s !! 1) * 2^16) +
+    (fromIntegral (s !! 2) * 2^8 ) +
+    (fromIntegral (s !! 3) )
+
+
 encode64be :: Word64 -> B.ByteString
 encode64be w = B.pack . map fromIntegral $
                 [ (w `shiftR` 56) .&. 0xff
@@ -149,8 +163,13 @@ encode64be w = B.pack . map fromIntegral $
 
 -- TODO build these tables using TemplateHaskell and a digit extraction algorithm
 
+--mkBox :: String -> [Word32]
+--mkBox =  map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
+
 mkBox :: String -> [Word32]
-mkBox =  map decode32be . doChunks 4 id . B.pack . map (fromIntegral . ord)
+mkBox = map fromIntegral . mkBox'
+    where mkBox' :: String -> [Int]
+          mkBox' =  map decode32beGen . doChunksGen 4 id . map (fromIntegral . ord)
 
 iPbox :: Pbox
 iPbox = mkBox "\
