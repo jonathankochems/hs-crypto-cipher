@@ -38,18 +38,21 @@ generateVec x f = map f . take x $ [0..]
 data Context = BF Pbox Sbox Sbox Sbox Sbox
 
 encrypt, decrypt :: Context -> B.ByteString -> B.ByteString
-encrypt = cipher . selectEncrypt
-decrypt = cipher . selectDecrypt
+encrypt x = myPack . (cipher $ selectEncrypt x)  . myUnpack
+decrypt x = myPack . (cipher $ selectDecrypt x)  . myUnpack
+
+myPack   = B.pack . map fromIntegral
+myUnpack = map fromIntegral . B.unpack
 
 selectEncrypt, selectDecrypt :: Context -> (Pbox, Context)
 selectEncrypt x@(BF p _ _ _ _) = (p, x)
 selectDecrypt x@(BF p _ _ _ _) = (V.reverse p, x)
 
-cipher :: (Pbox, Context) -> B.ByteString -> B.ByteString
+cipher :: (Pbox, Context) -> [Int] -> [Int]
 cipher (p, bs) b
-    | B.length b == 0 = B.empty
-    | B.length b `mod` 8 /= 0 = error "invalid data length"
-    | otherwise = B.concat $ map B.pack $ doChunks 8 (map fromIntegral . fromW32Pair . coreCrypto p bs . toW32Pair . map fromIntegral) (B.unpack b)
+    | length b == 0 = []
+    | length b `mod` 8 /= 0 = error "invalid data length"
+    | otherwise = concat $ doChunks 8 (fromW32Pair . coreCrypto p bs . toW32Pair) b
 
 initBlowfish :: B.ByteString -> Either String Context
 initBlowfish b
