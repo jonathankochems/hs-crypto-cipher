@@ -11,15 +11,12 @@ module Crypto.Cipher.Types.Base
     ( KeyError(..)
     , KeySizeSpecifier(..)
     , Key(..)
-    , IV(..)
     , Cipher(..)
-    , AuthTag(..)
     , DataUnitOffset
     ) where
 
 
 import Data.Word
-import Data.ByteString (ByteString)
 
 -- | Possible Error that can be reported when initializating a key
 data KeyError =
@@ -39,14 +36,7 @@ data KeySizeSpecifier =
 type DataUnitOffset = Word32
 
 -- | a Key parametrized by the cipher
-newtype Key c = Key ByteString deriving (Eq)
-
--- | an IV parametrized by the cipher
-newtype IV c = IV ByteString deriving (Eq)
-
--- | Authentification Tag for AE cipher mode
-newtype AuthTag = AuthTag ByteString
-    deriving (Show,Eq)
+newtype Key c = Key [Int] deriving (Eq)
 
 -- | Symmetric cipher class.
 class Cipher cipher where

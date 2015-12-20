@@ -5,8 +5,6 @@ import Test.QuickCheck
 
 import Data.Char(isPrint)
 
-import Data.ByteString.Char8 hiding (all, take, length)
-
 import Crypto 
 
 main :: IO ()

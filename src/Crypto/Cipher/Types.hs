@@ -14,30 +14,23 @@ module Crypto.Cipher.Types
     , DataUnitOffset
     , KeySizeSpecifier(..)
     , KeyError(..)
---    , AEADMode(..)
     -- * Key type and constructor
     , Key
     , makeKey
-    -- * Initial Vector type and constructor
-    , IV
-    -- * Authentification Tag
-    , AuthTag(..)
     ) where
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
 import Crypto.Cipher.Types.Base
 import Data.Char (ord)
 
-myPack :: String -> ByteString
-myPack   = B.pack . map (fromIntegral . ord)
+myPack :: String -> [Int]
+myPack = map (fromIntegral . ord)
 
 -- | Create a Key for a specified cipher
 makeKey :: (Cipher c) => String -> Either KeyError (Key c)
 makeKey b' = toKey undefined
   where b     = myPack b'
         sm    = {-BA.pack $ B.unpack-} b
-        smLen = B.length b
+        smLen = length b
         toKey :: Cipher c => c -> Either KeyError (Key c)
         toKey cipher = case cipherKeySize cipher of
             KeySizeRange mi ma | smLen < mi -> Left KeyErrorTooSmall
