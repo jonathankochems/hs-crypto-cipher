@@ -49,7 +49,7 @@ cipher :: (Pbox, Context) -> B.ByteString -> B.ByteString
 cipher (p, bs) b
     | B.length b == 0 = B.empty
     | B.length b `mod` 8 /= 0 = error "invalid data length"
-    | otherwise = B.concat $ doChunks 8 (fromW32Pair . coreCrypto p bs . toW32Pair) b
+    | otherwise = B.concat $ map B.pack $ doChunks 8 (map fromIntegral . fromW32Pair . coreCrypto p bs . toW32Pair . map fromIntegral) (B.unpack b)
 
 initBlowfish :: B.ByteString -> Either String Context
 initBlowfish b
@@ -101,28 +101,20 @@ procKey (l,r) tpbf@(BF p s0 s1 s2 s3)    i = procKey (nl,nr) (newbf i) (i+2)
                 | x < 1042 = (BF p s0 s1 s2 (s3//[(x-786,nl),(x-785,nr)]))
                 | otherwise = error "internal error: Crypto.Cipher.Blowfish:procKey "
 
-
-doChunks :: Int -> (B.ByteString -> B.ByteString) -> B.ByteString -> [B.ByteString]
 doChunks n f b =
-    let (x, rest) = B.splitAt n b in
-    if B.length rest >= n
+    let (x, rest) = splitAt n b in
+    if length rest >= n
         then f x : doChunks n f rest
         else [ f x ]
 
-doChunksGen n f b =
-    let (x, rest) = splitAt n b in
-    if length rest >= n
-        then f x : doChunksGen n f rest
-        else [ f x ]
-
-toW32Pair :: B.ByteString -> (Word32, Word32)
-toW32Pair b' = let (x1, x2) = splitAt 4 b
-                   w1 = decode32be x1
-                   w2 = decode32be x2
-                   b  = map fromIntegral $ B.unpack b'
+toW32Pair :: [Int] -> (Word32, Word32)
+toW32Pair b = let (x1, x2) = splitAt 4 b
+                  w1 = decode32be x1
+                  w2 = decode32be x2
               in (fromIntegral w1,fromIntegral w2)
 
-fromW32Pair :: (Word32, Word32) -> B.ByteString
+
+fromW32Pair :: (Word32, Word32) -> [Int]
 fromW32Pair (w1,w2)
     = let w1' = fromIntegral w1
           w2' = fromIntegral w2
@@ -137,8 +129,8 @@ decode32be s = id $!
     (fromIntegral (s !! 3) )
 
 
-encode64be :: Word64 -> B.ByteString
-encode64be w = B.pack . map fromIntegral $
+encode64be :: Word64 -> [Int]
+encode64be w = map fromIntegral $
                 [ (w `shiftR` 56) .&. 0xff
                 , (w `shiftR` 48) .&. 0xff
                 , (w `shiftR` 40) .&. 0xff
@@ -153,7 +145,7 @@ encode64be w = B.pack . map fromIntegral $
 mkBox :: String -> [Word32]
 mkBox = map fromIntegral . mkBox'
     where mkBox' :: String -> [Int]
-          mkBox' =  map decode32be . doChunksGen 4 id . map (fromIntegral . ord)
+          mkBox' =  map decode32be . doChunks 4 id . map (fromIntegral . ord)
 
 iPbox :: Pbox
 iPbox = mkBox "\
