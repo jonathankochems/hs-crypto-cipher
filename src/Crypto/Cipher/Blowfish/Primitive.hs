@@ -19,7 +19,6 @@ import Data.List as V
 import Data.Bits
 import Data.Char
 import Data.Word
-import qualified Data.ByteString as B
 
 type Pbox = [Word32]
 type Sbox = [Word32]
@@ -37,12 +36,9 @@ generateVec x f = map f . take x $ [0..]
 -- | variable keyed blowfish state
 data Context = BF Pbox Sbox Sbox Sbox Sbox
 
-encrypt, decrypt :: Context -> B.ByteString -> B.ByteString
-encrypt x = myPack . (cipher $ selectEncrypt x)  . myUnpack
-decrypt x = myPack . (cipher $ selectDecrypt x)  . myUnpack
-
-myPack   = B.pack . map fromIntegral
-myUnpack = map fromIntegral . B.unpack
+encrypt, decrypt :: Context -> [Int] -> [Int]
+encrypt = cipher . selectEncrypt
+decrypt = cipher . selectDecrypt
 
 selectEncrypt, selectDecrypt :: Context -> (Pbox, Context)
 selectEncrypt x@(BF p _ _ _ _) = (p, x)
@@ -54,16 +50,16 @@ cipher (p, bs) b
     | length b `mod` 8 /= 0 = error "invalid data length"
     | otherwise = concat $ doChunks 8 (fromW32Pair . coreCrypto p bs . toW32Pair) b
 
-initBlowfish :: B.ByteString -> Either String Context
+initBlowfish :: [Int] -> Either String Context
 initBlowfish b
-    | B.length b > (448 `div` 8) = fail "key too large"
-    | B.length b == 0 = keyFromByteString (B.replicate (18*4) 0)
-    | otherwise = keyFromByteString . B.pack . take (18*4) . cycle . B.unpack $ b
+    | length b > (448 `div` 8) = fail "key too large"
+    | length b == 0 = keyFromByteString (replicate (18*4) 0)
+    | otherwise = keyFromByteString . take (18*4) $ cycle b
 
-keyFromByteString :: B.ByteString -> Either String Context
+keyFromByteString :: [Int] -> Either String Context
 keyFromByteString k
-    | B.length k /= (18 * 4) = fail "Incorrect expanded key length."
-    | otherwise = return . bfMakeKey . (\ws -> generateVec 18 (ws!!)) . w8tow32 . B.unpack $ k
+    | length k /= (18 * 4) = fail "Incorrect expanded key length."
+    | otherwise = return . bfMakeKey . (\ws -> generateVec 18 (ws!!)) . w8tow32 $ map fromIntegral k
   where
     w8tow32 :: [Word8] -> [Word32]
     w8tow32 [] = []

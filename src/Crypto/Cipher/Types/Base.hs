@@ -20,7 +20,6 @@ module Crypto.Cipher.Types.Base
 
 import Data.Word
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 
 -- | Possible Error that can be reported when initializating a key
 data KeyError =
@@ -42,37 +41,12 @@ type DataUnitOffset = Word32
 -- | a Key parametrized by the cipher
 newtype Key c = Key ByteString deriving (Eq)
 
---instance ToSecureMem (Key c) where
---    toSecureMem (Key sm) = sm
---instance Byteable (Key c) where
---    toBytes (Key sm) = toBytes sm
-
---instance Byteable ScrubbedBytes where
---    toBytes x = BS.pack $ BA.unpack x
-
 -- | an IV parametrized by the cipher
 newtype IV c = IV ByteString deriving (Eq)
-
---instance Byteable (IV c) where
---    toBytes (IV sm) = sm
 
 -- | Authentification Tag for AE cipher mode
 newtype AuthTag = AuthTag ByteString
     deriving (Show,Eq)
-
---instance Eq AuthTag where
---    (AuthTag a) == (AuthTag b) = constEqBytes a b
---instance Byteable AuthTag where
---    toBytes (AuthTag bs) = bs
-
----- | AEAD Mode
---data AEADMode =
---      AEAD_OCB -- OCB3
---    | AEAD_CCM
---    | AEAD_EAX
---    | AEAD_CWC
---    | AEAD_GCM
---    deriving (Show,Eq)
 
 -- | Symmetric cipher class.
 class Cipher cipher where

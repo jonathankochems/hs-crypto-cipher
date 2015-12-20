@@ -9,7 +9,8 @@
 module Crypto.Cipher.Blowfish
     ( Blowfish, ecbEncrypt, ecbDecrypt ) where
 
-import Data.ByteString hiding (withByteArray)
+import Data.Char (ord,chr)
+import Data.ByteString hiding (withByteArray,map)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Internal as BS
 import Foreign.Ptr (plusPtr, Ptr)
@@ -24,13 +25,17 @@ import Crypto.Cipher.Blowfish.Primitive
 newtype Blowfish = Blowfish Context
 
 -- | Create a bytestring from a Secure Mem
-secureMemToByteString :: ByteString -> ByteString
-secureMemToByteString sm = pack $ unpack sm
+secureMemToByteString :: ByteString -> [Int]
+secureMemToByteString sm = map fromIntegral $ unpack sm
 
 instance Cipher Blowfish where
     cipherName _    = "blowfish"
     cipherKeySize _ = KeySizeRange 6 56
     cipherInit (Key k) = either error Blowfish $ initBlowfish (secureMemToByteString k)
 
-ecbEncrypt (Blowfish bf) = encrypt bf
-ecbDecrypt (Blowfish bf) = decrypt bf
+myPack   = map chr
+myUnpack = map ord 
+
+ecbEncrypt, ecbDecrypt :: Blowfish -> String -> String 
+ecbEncrypt (Blowfish bf) = myPack . encrypt bf . myUnpack 
+ecbDecrypt (Blowfish bf) = myPack . decrypt bf . myUnpack
