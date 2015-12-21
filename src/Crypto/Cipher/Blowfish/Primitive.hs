@@ -23,10 +23,10 @@ import Data.Word (Word32, Word64, Word8)
 type Pbox = [Word32]
 type Sbox = [Word32]
 
-instance Monad (Either a) where
-  return   = Right
-  (>>=) (Right x) f = f x
-  (>>=) (Left x) y  = Left x
+--instance Monad (Either a) where
+--  return   = Right
+--  (>>=) (Right x) f = f x
+--  (>>=) (Left x) y  = Left x
 
 
 (//) :: [a] -> [(Int,a)] -> [a]
