@@ -12,11 +12,7 @@ module Crypto.Cipher.Types.Base
     , KeySizeSpecifier(..)
     , Key(..)
     , Cipher(..)
-    , DataUnitOffset
     ) where
-
-
-import Data.Word
 
 -- | Possible Error that can be reported when initializating a key
 data KeyError =
@@ -31,9 +27,6 @@ data KeySizeSpecifier =
     | KeySizeEnum  [Int]   -- ^ one of the specified values
     | KeySizeFixed Int     -- ^ a specific size
     deriving (Show,Eq)
-
--- | Offset inside an XTS data unit, measured in block size.
-type DataUnitOffset = Word32
 
 -- | a Key parametrized by the cipher
 newtype Key c = Key [Int] deriving (Eq)

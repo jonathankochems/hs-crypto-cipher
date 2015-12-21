@@ -16,9 +16,9 @@ module Crypto.Cipher.Blowfish.Primitive
     ) where
 
 import Data.List as V
-import Data.Bits
-import Data.Char
-import Data.Word
+import Data.Bits (shiftR, shiftL, (.|.), (.&.), xor)
+import Data.Char (ord)
+import Data.Word (Word32, Word64, Word8)
 
 type Pbox = [Word32]
 type Sbox = [Word32]

@@ -11,7 +11,6 @@ module Crypto.Cipher.Types
     (
     -- * Cipher classes
       Cipher(..)
-    , DataUnitOffset
     , KeySizeSpecifier(..)
     , KeyError(..)
     -- * Key type and constructor
