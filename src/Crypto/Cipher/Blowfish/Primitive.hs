@@ -83,7 +83,7 @@ coreCrypto p bs i = (let f (l,r)= (r `xor` p!!17, l `xor` p!!16) in f)
     doRound (BF _ s0 s1 s2 s3) (l,r) pv =
         let newr = l `xor` pv
             newl = r `xor` (f newr)
-        in (newl, newr)
+        in newl `seq` newr `seq` (newl, newr)
           where
             f   :: Word32 -> Word32
             f t = let a = s0 !! (fromIntegral $ (t `shiftR` 24) .&. 0xff)
@@ -97,7 +97,7 @@ bfMakeKey k = procKey (0,0) (BF (V.zipWith xor k iPbox) iSbox0 iSbox1 iSbox2 iSb
 
 procKey :: (Word32, Word32) -> Context -> Int -> Context
 procKey _     tpbf                    1042 = tpbf
-procKey (l,r) tpbf@(BF p s0 s1 s2 s3)    i = procKey (nl,nr) (newbf i) (i+2)
+procKey (l,r) tpbf@(BF p s0 s1 s2 s3)    i = nl `seq` nr `seq` newbf i `seq` i+2 `seq` procKey (nl,nr) (newbf i) (i+2)
   where (nl,nr) = coreCrypto p tpbf (l,r)
         newbf x | x <   18 = (BF (p//[(x,nl),(x+1,nr)]) s0 s1 s2 s3)
                 | x <  274 = (BF p (s0//[(x-18,nl),(x-17,nr)]) s1 s2 s3)
