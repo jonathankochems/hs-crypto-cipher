@@ -23,9 +23,15 @@ import Data.Word (Word32, Word64, Word8)
 type Pbox = [Word32]
 type Sbox = [Word32]
 
+instance Monad (Either a) where
+  return   = Right
+  (>>=) (Right x) f = f x
+  (>>=) (Left x) y  = Left x
+
+
 (//) :: [a] -> [(Int,a)] -> [a]
 (//) xs ys' = go xs ys 0
-  where ys = sortBy (\x y -> compare (fst x) (fst y)) ys'
+  where ys = sortBy (let f x y = compare (fst x) (fst y) in f) ys'
         go [] _ _ = []
         go as [] _ = as
         go (a:as) ((i,b):bs) j | i == j     = b : go as bs (j+1)
@@ -59,7 +65,7 @@ initBlowfish b
 keyFromByteString :: [Int] -> Either String Context
 keyFromByteString k
     | length k /= (18 * 4) = fail "Incorrect expanded key length."
-    | otherwise = return . bfMakeKey . (\ws -> generateVec 18 (ws!!)) . w8tow32 $ map fromIntegral k
+    | otherwise = return . bfMakeKey . (let f ws = generateVec 18 (ws!!) in f) . w8tow32 $ map fromIntegral k
   where
     w8tow32 :: [Word8] -> [Word32]
     w8tow32 [] = []
@@ -70,7 +76,7 @@ keyFromByteString k
     w8tow32 _ = error $ "internal error: Crypto.Cipher.Blowfish:keyFromByteString"
 
 coreCrypto :: Pbox -> Context -> (Word32, Word32) -> (Word32, Word32)
-coreCrypto p bs i = (\(l,r) -> (r `xor` p!!17, l `xor` p!!16))
+coreCrypto p bs i = (let f (l,r)= (r `xor` p!!17, l `xor` p!!16) in f)
                   $ V.foldl' (doRound bs) i (V.take 16 p)
   where
     doRound :: Context -> (Word32, Word32) -> Word32 -> (Word32, Word32)
