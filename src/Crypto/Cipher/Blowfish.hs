@@ -11,8 +11,7 @@ module Crypto.Cipher.Blowfish
 
 import Data.Char (ord,chr)
 
-import Crypto.Cipher.Types
-import Crypto.Cipher.Types.Base
+import Crypto.Internal
 import Crypto.Cipher.Blowfish.Primitive
 
 -- | variable keyed blowfish state
