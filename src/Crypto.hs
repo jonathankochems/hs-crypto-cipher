@@ -1,7 +1,6 @@
 module Crypto where
 
-import Crypto.Internal (cipherInit, makeKey)
-import Crypto.Cipher.Blowfish (Blowfish, ecbEncrypt, ecbDecrypt)
+import Crypto.Internal (cipherInit, makeKey, Blowfish, ecbEncrypt, ecbDecrypt)
 
 -- the bytestring need to have a length of 32 bytes
 -- otherwise the simplified error handling will raise an exception.

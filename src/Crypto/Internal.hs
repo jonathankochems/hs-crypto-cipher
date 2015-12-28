@@ -17,17 +17,20 @@ module Crypto.Internal
     -- * Key type and constructor
     , Key
     , makeKey
+    -- * Blowfish
+    , Blowfish
+    , ecbEncrypt
+    , ecbDecrypt
     ) where
 
-import Data.Char (ord)
+import Data.Char (ord,chr)
+import Crypto.Cipher.Blowfish.Primitive (Context, initBlowfish,encrypt,decrypt)
 
-myPack :: String -> [Int]
-myPack = map (fromIntegral . ord)
 
 -- | Create a Key for a specified cipher
 makeKey :: (Cipher c) => String -> Either KeyError (Key c)
 makeKey b' = toKey undefined
-  where b     = myPack b'
+  where b     = myUnpack b'
         sm    = {-BA.pack $ B.unpack-} b
         smLen = length b
         toKey :: Cipher c => c -> Either KeyError (Key c)
@@ -66,4 +69,22 @@ class Cipher cipher where
     -- | return the size of the key required for this cipher.
     -- Some cipher accept any size for key
     cipherKeySize :: cipher -> KeySizeSpecifier
+
+
+newtype Blowfish = Blowfish Context
+
+instance Cipher Blowfish where
+    cipherName _    = "blowfish"
+    cipherKeySize _ = KeySizeRange 6 56
+    cipherInit (Key k) = either error Blowfish $ initBlowfish k
+
+myPack :: [Int] -> String 
+myPack   = map chr
+
+myUnpack :: String -> [Int]
+myUnpack = map (fromIntegral . ord)
+
+ecbEncrypt, ecbDecrypt :: Blowfish -> String -> String 
+ecbEncrypt (Blowfish bf) = myPack . encrypt bf . myUnpack 
+ecbDecrypt (Blowfish bf) = myPack . decrypt bf . myUnpack
 
