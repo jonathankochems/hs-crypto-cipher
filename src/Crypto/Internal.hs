@@ -10,8 +10,7 @@
 module Crypto.Internal
     (
     -- * Cipher classes
-      KeySizeSpecifier(..)
-    , KeyError(..)
+      KeyError(..)
     , Key(..)
     -- * Key type and constructor
     , Key
@@ -39,14 +38,6 @@ makeKey b' = key
 data KeyError =
       KeyErrorTooSmall
     | KeyErrorTooBig
-    | KeyErrorInvalid String
-    deriving (Show,Eq)
-
--- | Different specifier for key size in bytes
-data KeySizeSpecifier =
-      KeySizeRange Int Int -- ^ in the range [min,max]
-    | KeySizeEnum  [Int]   -- ^ one of the specified values
-    | KeySizeFixed Int     -- ^ a specific size
     deriving (Show,Eq)
 
 -- | a Key parametrized by the cipher
