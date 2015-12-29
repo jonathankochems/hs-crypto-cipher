@@ -8,7 +8,7 @@
 -- based on: BlowfishAux.hs (C) 2002 HardCore SoftWare, Doug Hoyte
 --           (as found in Crypto-4.2.4)
 
-module Crypto.Cipher.Blowfish.Primitive
+module Crypto.Blowfish
     ( Context
     , initBlowfish
     , encrypt
