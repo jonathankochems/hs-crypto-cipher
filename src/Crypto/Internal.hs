@@ -9,27 +9,23 @@
 --
 module Crypto.Internal
     (
-    -- * Cipher classes
+    -- * Key type and constructor
       KeyError(..)
     , Key(..)
-    -- * Key type and constructor
-    , Key
     , makeKey
-    -- * Blowfish
-    , Context(..)
+    -- * pack/unpack
     , myPack
     , myUnpack
     ) where
 
 import Data.Char (ord,chr)
-import Crypto.Blowfish (Context(..), initBlowfish)
 
 -- | Create a Key for a specified cipher
-makeKey :: String -> Either KeyError (Key Context)
-makeKey b' = key
+makeKey :: String -> Key
+makeKey b' = either (error . show) id key
   where b     = myUnpack b'
         smLen = length b
-        key :: Either KeyError (Key Context)
+        key :: Either KeyError Key
         key | smLen < 6  = Left KeyErrorTooSmall
             | smLen > 56 = Left KeyErrorTooBig
             | otherwise  = Right $ Key b
@@ -41,7 +37,7 @@ data KeyError =
     deriving (Show,Eq)
 
 -- | a Key parametrized by the cipher
-newtype Key c = Key [Int] deriving (Eq)
+newtype Key = Key [Int] deriving (Eq)
 
 myPack :: [Int] -> String 
 myPack   = map chr

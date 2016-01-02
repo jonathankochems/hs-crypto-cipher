@@ -9,7 +9,7 @@
 --           (as found in Crypto-4.2.4)
 
 module Crypto.Blowfish
-    ( Context
+    ( BlowfishContext(..)
     , initBlowfish
     , encrypt
     , decrypt
@@ -40,29 +40,30 @@ generateVec :: Int -> (Int -> a) -> [a]
 generateVec x f = map f . take x $ [0..] 
 
 -- | variable keyed blowfish state
-data Context = BF Pbox Sbox Sbox Sbox Sbox
+data BlowfishContext = BlowfishContext Pbox Sbox Sbox Sbox Sbox
+  deriving Show
 
-encrypt, decrypt :: Context -> [Int] -> [Int]
+encrypt, decrypt :: BlowfishContext -> [Int] -> [Int]
 encrypt = cipher . selectEncrypt
 decrypt = cipher . selectDecrypt
 
-selectEncrypt, selectDecrypt :: Context -> (Pbox, Context)
-selectEncrypt x@(BF p _ _ _ _) = (p, x)
-selectDecrypt x@(BF p _ _ _ _) = (V.reverse p, x)
+selectEncrypt, selectDecrypt :: BlowfishContext -> (Pbox, BlowfishContext)
+selectEncrypt x@(BlowfishContext p _ _ _ _) = (p, x)
+selectDecrypt x@(BlowfishContext p _ _ _ _) = (V.reverse p, x)
 
-cipher :: (Pbox, Context) -> [Int] -> [Int]
+cipher :: (Pbox, BlowfishContext) -> [Int] -> [Int]
 cipher (p, bs) b
     | length b == 0 = []
     | length b `mod` 8 /= 0 = error "invalid data length"
     | otherwise = concat $ doChunks 8 (fromW32Pair . coreCrypto p bs . toW32Pair) b
 
-initBlowfish :: [Int] -> Either String Context
+initBlowfish :: [Int] -> Either String BlowfishContext
 initBlowfish b
     | length b > (448 `div` 8) = fail "key too large"
     | length b == 0 = keyFromByteString (replicate (18*4) 0)
     | otherwise = keyFromByteString . take (18*4) $ cycle b
 
-keyFromByteString :: [Int] -> Either String Context
+keyFromByteString :: [Int] -> Either String BlowfishContext
 keyFromByteString k
     | length k /= (18 * 4) = fail "Incorrect expanded key length."
     | otherwise = return . bfMakeKey . (let f ws = generateVec 18 (ws!!) in f) . w8tow32 $ map fromIntegral k
@@ -75,12 +76,12 @@ keyFromByteString k
                              (fromIntegral d) ) : w8tow32 xs
     w8tow32 _ = error $ "internal error: Crypto.Cipher.Blowfish:keyFromByteString"
 
-coreCrypto :: Pbox -> Context -> (Word32, Word32) -> (Word32, Word32)
+coreCrypto :: Pbox -> BlowfishContext -> (Word32, Word32) -> (Word32, Word32)
 coreCrypto p bs i = (let f (l,r)= (r `xor` p!!17, l `xor` p!!16) in f)
                   $ V.foldl' (doRound bs) i (V.take 16 p)
   where
-    doRound :: Context -> (Word32, Word32) -> Word32 -> (Word32, Word32)
-    doRound (BF _ s0 s1 s2 s3) (l,r) pv =
+    doRound :: BlowfishContext -> (Word32, Word32) -> Word32 -> (Word32, Word32)
+    doRound (BlowfishContext _ s0 s1 s2 s3) (l,r) pv =
         let newr = l `xor` pv
             newl = r `xor` (f newr)
         in newl `seq` newr `seq` (newl, newr)
@@ -92,18 +93,18 @@ coreCrypto p bs i = (let f (l,r)= (r `xor` p!!17, l `xor` p!!16) in f)
                       d = s3 !! (fromIntegral $ t .&. 0xff)
                   in ((a + b) `xor` c) + d
 
-bfMakeKey :: [Word32] -> Context
-bfMakeKey k = procKey (0,0) (BF (V.zipWith xor k iPbox) iSbox0 iSbox1 iSbox2 iSbox3) 0
+bfMakeKey :: [Word32] -> BlowfishContext
+bfMakeKey k = procKey (0,0) (BlowfishContext (V.zipWith xor k iPbox) iSbox0 iSbox1 iSbox2 iSbox3) 0
 
-procKey :: (Word32, Word32) -> Context -> Int -> Context
+procKey :: (Word32, Word32) -> BlowfishContext -> Int -> BlowfishContext
 procKey _     tpbf                    1042 = tpbf
-procKey (l,r) tpbf@(BF p s0 s1 s2 s3)    i = nl `seq` nr `seq` newbf i `seq` i+2 `seq` procKey (nl,nr) (newbf i) (i+2)
+procKey (l,r) tpbf@(BlowfishContext p s0 s1 s2 s3)    i = nl `seq` nr `seq` newbf i `seq` i+2 `seq` procKey (nl,nr) (newbf i) (i+2)
   where (nl,nr) = coreCrypto p tpbf (l,r)
-        newbf x | x <   18 = (BF (p//[(x,nl),(x+1,nr)]) s0 s1 s2 s3)
-                | x <  274 = (BF p (s0//[(x-18,nl),(x-17,nr)]) s1 s2 s3)
-                | x <  530 = (BF p s0 (s1//[(x-274,nl),(x-273,nr)]) s2 s3)
-                | x <  786 = (BF p s0 s1 (s2//[(x-530,nl),(x-529,nr)]) s3)
-                | x < 1042 = (BF p s0 s1 s2 (s3//[(x-786,nl),(x-785,nr)]))
+        newbf x | x <   18 = (BlowfishContext (p//[(x,nl),(x+1,nr)]) s0 s1 s2 s3)
+                | x <  274 = (BlowfishContext p (s0//[(x-18,nl),(x-17,nr)]) s1 s2 s3)
+                | x <  530 = (BlowfishContext p s0 (s1//[(x-274,nl),(x-273,nr)]) s2 s3)
+                | x <  786 = (BlowfishContext p s0 s1 (s2//[(x-530,nl),(x-529,nr)]) s3)
+                | x < 1042 = (BlowfishContext p s0 s1 s2 (s3//[(x-786,nl),(x-785,nr)]))
                 | otherwise = error "internal error: Crypto.Cipher.Blowfish:procKey "
 
 doChunks n f b =

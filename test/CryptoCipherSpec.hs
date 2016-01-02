@@ -13,7 +13,7 @@ main = do hspec spec
 
 spec' :: Spec
 spec'= do describe "bla"  $ it "should be bla" $ do
-            let key       = createKey "testfkjshfksjahdkj"
+            let key       = createContext "testfkjshfksjahdkj"
                 message1  = "testmessage asdkhaskjdhasjhgdakjshgdkajshdgkajhsgdkajhsg" 
                 cmessage1 = "\162\198\EOT6\173O\211\180B\SYNp3\134\142\196\227[0^`z%\v*\f\142G1!\219a\251\DC1\144\167/\130\"D\145\176\172h\152E\166;%\159pP\199?\225/\183"
                 message2  = "rumtitumatataat blweijdasdeeswig" 
@@ -24,7 +24,7 @@ spec'= do describe "bla"  $ it "should be bla" $ do
             decrypt key cmessage2 `shouldBe` message2
           describe "spec" $ it "should do something" $ do
             let message = "testmessage asdkhaskjdhasjhgdakjshgdkajshdgkajhsgdkajhsg"
-                key     = createKey "testfkjshfksjahdkj"
+                key     = createContext "testfkjshfksjahdkj"
             let e = encrypt key message
                 d = decrypt key e
             (length message `mod` 8) `shouldBe` 0
@@ -33,7 +33,7 @@ spec'= do describe "bla"  $ it "should be bla" $ do
             forAll messageGen $ 
               \message' -> 
                  do let message = pad message'
-                        key = createKey "testfkjshfksjahdkj"
+                        key = createContext "testfkjshfksjahdkj"
                         e = encrypt key message
                         d = decrypt key e
                     (length message `mod` 8) `shouldBe` 0
