@@ -23,12 +23,6 @@ import Data.Word (Word32, Word64, Word8)
 type Pbox = [Word32]
 type Sbox = [Word32]
 
---instance Monad (Either a) where
---  return   = Right
---  (>>=) (Right x) f = f x
---  (>>=) (Left x) y  = Left x
-
-
 (//) :: [a] -> [(Int,a)] -> [a]
 (//) xs ys' = go xs ys 0
   where ys = sortBy (let f x y = compare (fst x) (fst y) in f) ys'
@@ -59,14 +53,14 @@ cipher (p, bs) b
 
 initBlowfish :: [Int] -> Either String BlowfishContext
 initBlowfish b
-    | length b > (448 `div` 8) = fail "key too large"
+    | length b > (448 `div` 8) = Left "key too large"
     | length b == 0 = keyFromByteString (replicate (18*4) 0)
     | otherwise = keyFromByteString . take (18*4) $ cycle b
 
 keyFromByteString :: [Int] -> Either String BlowfishContext
 keyFromByteString k
-    | length k /= (18 * 4) = fail "Incorrect expanded key length."
-    | otherwise = return . bfMakeKey . (let f ws = generateVec 18 (ws!!) in f) . w8tow32 $ map fromIntegral k
+    | length k /= (18 * 4) = Left "Incorrect expanded key length."
+    | otherwise = Right . bfMakeKey . (let f ws = generateVec 18 (ws!!) in f) . w8tow32 $ map fromIntegral k
   where
     w8tow32 :: [Word8] -> [Word32]
     w8tow32 [] = []
